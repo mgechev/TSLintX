@@ -39,6 +39,7 @@ class OutputMetadataWalker extends Lint.RuleWalker {
   constructor(private declaredVariables: Set<string>, sourceFile: ts.SourceFile, options: any) {
     super(sourceFile, options);
   }
+
   visitIdentifier(node: ts.Identifier): void {
     const varName = node.getText();
     const text = node.parent.getText();
