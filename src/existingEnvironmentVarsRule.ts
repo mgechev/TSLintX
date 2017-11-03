@@ -4,25 +4,19 @@ import * as ts from 'typescript';
 import { execSync } from 'child_process';
 
 const collectEnvironmentVariableNames = (): Set<string> => {
-  const result = new Set<string>();
-  try {
-    const res = execSync('printenv').toString();
-    res.split('\n').forEach(row => {
-      result.add(row.split('=')[0]);
-    });
-  } catch (e) {
-    console.error('Cannot read environment variables');
-  }
-  return result;
+  return Object.keys(process.env).reduce((s: Set<string>, env: string) => {
+    s.add(env);
+    return s;
+  }, new Set<string>());
 };
 
 export class Rule extends Lint.Rules.AbstractRule {
   public static metadata: Lint.IRuleMetadata = {
     ruleName: 'existing-environment-vars',
-    type: 'maintainability',
-    description: `Disallows renaming directive outputs by providing a string to the decorator.`,
-    descriptionDetails: `See more at https://angular.io/styleguide#style-05-13.`,
-    rationale: `Two names for the same property (one private, one public) is inherently confusing.`,
+    type: 'functionality',
+    description: 'Reports when trying to access an non-existing environment variable',
+    rationale:
+      'Useful when building the front-end of an application which internally uses environment variables. For instance, REACT_APP_VAR.',
     options: null,
     optionsDescription: `Not configurable.`,
     typescriptOnly: true
