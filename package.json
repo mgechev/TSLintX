@@ -1,7 +1,7 @@
 {
   "name": "tslint-rules",
   "version": "0.0.1",
-  "description": "Linting",
+  "description": "TSLint linting",
   "main": "index.js",
   "scripts": {
     "docs": "ts-node build/buildDocs.ts",
