@@ -27,6 +27,34 @@ describe('existing-environment-vars', () => {
         source
       });
     });
+
+    it('should fail, when an environment variable is not declared using square brackets property access', () => {
+      const source = `
+      const foo = () => {
+        return process.env[\`BAR\`];
+                           ~~~~~
+      };
+      `;
+      assertAnnotated({
+        ruleName: 'existing-environment-vars',
+        message: 'Environment variable "BAR" used but not presented in environment',
+        source
+      });
+    });
+
+    it('should fail, when an environment variable is not declared using square brackets property access', () => {
+      const source = `
+      const foo = () => {
+        return process.env['BAR'];
+                           ~~~~~
+      };
+      `;
+      assertAnnotated({
+        ruleName: 'existing-environment-vars',
+        message: 'Environment variable "BAR" used but not presented in environment',
+        source
+      });
+    });
   });
 
   describe('valid environment variable access', () => {
@@ -50,6 +78,13 @@ describe('existing-environment-vars', () => {
       const f = () => {
         return process.env.PATH;
       };
+      `;
+      assertSuccess('existing-environment-vars', source);
+    });
+
+    it('should succeed, when accessing a property `process` with non-existing variable', () => {
+      const source = `
+        Foo.process.env.PATH;
       `;
       assertSuccess('existing-environment-vars', source);
     });
