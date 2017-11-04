@@ -1,5 +1,5 @@
 {
-  "name": "tslint-rules",
+  "name": "tslintx",
   "version": "0.0.1",
   "description": "TSLint linting",
   "main": "index.js",

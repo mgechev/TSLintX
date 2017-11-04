@@ -1,4 +1,4 @@
-# TSLint Rules
+# TSLintX
 
 TSLint rules for happier life.
 
