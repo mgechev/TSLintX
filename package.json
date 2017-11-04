@@ -7,8 +7,7 @@
     "docs": "ts-node build/buildDocs.ts",
     "lint": "tslint -c tslint.json \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint:fix": "npm run lint -- --fix",
-    "release":
-      "npm run build && rimraf dist && tsc -p tsconfig-release.json && npm run copy:common && npm run prepare:package && BUILD_TYPE=prod npm run set:vars",
+    "release": "npm run build && rimraf dist && tsc -p tsconfig-release.json && npm run copy:common && npm run prepare:package && BUILD_TYPE=prod npm run set:vars",
     "build": "rimraf dist && tsc && npm run lint && npm t",
     "copy:common": "cp README.md dist",
     "prepare:package": "cat package.json | ts-node build/package.ts > dist/package.json",
@@ -19,12 +18,17 @@
     "tsc": "tsc",
     "tsc:watch": "tsc --w"
   },
-  "contributors": ["Minko Gechev <mgechev@gmail.com>"],
+  "contributors": [
+    "Minko Gechev <mgechev@gmail.com>"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mgechev/tslint-rules.git"
   },
-  "keywords": ["lint", "tslint"],
+  "keywords": [
+    "lint",
+    "tslint"
+  ],
   "author": {
     "name": "Minko Gechev",
     "email": "mgechev@gmail.com"
@@ -36,34 +40,23 @@
   "homepage": "https://github.com/mgechev/tslint-rules#readme",
   "devDependencies": {
     "@types/chai": "^3.4.33",
-    "@types/less": "0.0.31",
     "@types/mocha": "^2.2.32",
     "@types/node": "^6.0.41",
-    "@types/source-map": "^0.5.0",
-    "@types/sprintf-js": "0.0.27",
+    "@types/sprintf-js": "^1.1.0",
     "chai": "^3.5.0",
     "chai-spies": "^0.7.1",
-    "minimalist": "1.0.0",
+    "js-yaml": "^3.8.4",
     "mocha": "3.0.2",
     "rimraf": "^2.5.2",
-    "rxjs": "^5.5.0",
     "ts-node": "1.2.2",
     "tslint": "^5.0.0",
-    "typescript": "2.4.0",
-    "zone.js": "^0.8.4",
-    "js-yaml": "^3.8.4",
-    "json-stringify-pretty-compact": "^1.0.4",
-    "@types/js-yaml": "^3.5.31"
+    "typescript": "^2.5.0"
   },
   "peerDependencies": {
     "tslint": "^5.0.0"
   },
   "dependencies": {
-    "app-root-path": "^2.0.1",
-    "css-selector-tokenizer": "^0.7.0",
-    "cssauron": "^1.4.0",
-    "semver-dsl": "^1.0.1",
-    "source-map": "^0.5.6",
-    "sprintf-js": "^1.0.3"
+    "json-stringify-pretty-compact": "^1.0.4",
+    "sprintf-js": "^1.1.1"
   }
 }
