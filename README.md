@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mgechev/TSLintX.svg?branch=master)](https://travis-ci.org/mgechev/TSLintX)
+
 # TSLintX
 
 TSLint rules for happier life.

@@ -1,16 +1,12 @@
 language: node_js
 
 node_js:
-  - 5
   - stable
 os:
   - linux
-  - osx
 
 branches:
   only: master
-
-before_install: npm i rxjs@5.0.1 @angular/core @angular/compiler zone.js@0.7.2
 
 script: npm run tscv && npm run lint && npm t
 
