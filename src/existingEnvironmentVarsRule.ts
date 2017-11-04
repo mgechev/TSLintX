@@ -3,13 +3,6 @@ import * as ts from 'typescript';
 
 import { execSync } from 'child_process';
 
-const collectEnvironmentVariableNames = (): Set<string> => {
-  return Object.keys(process.env).reduce((s: Set<string>, env: string) => {
-    s.add(env);
-    return s;
-  }, new Set<string>());
-};
-
 export class Rule extends Lint.Rules.AbstractRule {
   public static metadata: Lint.IRuleMetadata = {
     ruleName: 'existing-environment-vars',
@@ -23,21 +16,15 @@ export class Rule extends Lint.Rules.AbstractRule {
   };
 
   public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
-    return this.applyWithWalker(
-      new OutputMetadataWalker(collectEnvironmentVariableNames(), sourceFile, this.getOptions())
-    );
+    return this.applyWithWalker(new OutputMetadataWalker(sourceFile, this.getOptions()));
   }
 }
 
 class OutputMetadataWalker extends Lint.RuleWalker {
-  constructor(private declaredVariables: Set<string>, sourceFile: ts.SourceFile, options: any) {
-    super(sourceFile, options);
-  }
-
   visitIdentifier(node: ts.Identifier): void {
     const varName = node.getText();
     const text = node.parent.getText();
-    if (varName && text === `process.env.${varName}` && !this.isDeclared(varName)) {
+    if (varName && text === `process.env.${varName}` && process.env[varName] === undefined) {
       this.addFailure(
         this.createFailure(
           node.getStart(),
@@ -46,9 +33,5 @@ class OutputMetadataWalker extends Lint.RuleWalker {
         )
       );
     }
-  }
-
-  private isDeclared(variable: string): boolean {
-    return this.declaredVariables.has(variable);
   }
 }
