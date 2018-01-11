@@ -48,6 +48,7 @@ function isRelevantClassMember(node: ts.Node): node is RelevantClassMember {
     case ts.SyntaxKind.PropertyDeclaration:
     case ts.SyntaxKind.GetAccessor:
     case ts.SyntaxKind.SetAccessor:
+    case ts.SyntaxKind.Parameter:
       return true;
     default:
       return false;

@@ -45,6 +45,20 @@ describe('underscore-privates', () => {
         source
       });
     });
+
+    it('should fail, with improperly named inline constructor property declaration', () => {
+      const source = `
+      class foo {
+        constructor(private bar) {}
+                            ~~~
+      }
+      `;
+      assertAnnotated({
+        ruleName: 'underscore-privates',
+        message: `private member's name must be prefixed with an underscore`,
+        source
+      });
+    });
   });
 
   describe('positive cases', () => {
@@ -63,6 +77,24 @@ describe('underscore-privates', () => {
       class foo {
         _bar() {
         }
+      }
+      `;
+      assertSuccess('underscore-privates', source);
+    });
+
+    it('should work, with properly named inline constructor property declaration', () => {
+      const source = `
+      class foo {
+        constructor(private _bar) {}
+      }
+      `;
+      assertSuccess('underscore-privates', source);
+    });
+
+    it.only('should work, with properly named inline constructor property declaration', () => {
+      const source = `
+      class foo {
+        constructor(bar) {}
       }
       `;
       assertSuccess('underscore-privates', source);

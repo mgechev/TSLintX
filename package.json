@@ -1,6 +1,6 @@
 {
   "name": "tslintx",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "TSLint linting",
   "main": "index.js",
   "scripts": {
