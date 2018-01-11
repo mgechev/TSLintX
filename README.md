@@ -8,10 +8,10 @@ TSLint rules for happier life.
 
 This repository provides the following rules:
 
-| Rule Name                   | Configuration  | Description                                                           |
-|:---------------------------:|:--------------:|:---------------------------------------------------------------------:|
-| `existing-environment-vars` | none           | Warns when an environment variable referenced in the code is not used.|
-
+|          Rule Name          | Configuration |                                    Description                                     |
+| :-------------------------: | :-----------: | :--------------------------------------------------------------------------------: |
+| `existing-environment-vars` |     none      |       Warns when an environment variable referenced in the code is not used.       |
+|    `underscore-privates`    |     none      | Warns when a private property, method or accessor is not prefixed with underscore. |
 
 # How to use?
 
@@ -19,9 +19,7 @@ To use the rules in your project:
 
 ```json
 {
-  "rulesDirectory": [
-    "node_modules/tslint-rules"
-  ],
+  "rulesDirectory": ["tslintx"],
   "existing-environment-vars": true
 }
 ```
@@ -29,4 +27,3 @@ To use the rules in your project:
 # License
 
 MIT
-
