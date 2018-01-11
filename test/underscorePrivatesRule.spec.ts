@@ -91,7 +91,7 @@ describe('underscore-privates', () => {
       assertSuccess('underscore-privates', source);
     });
 
-    it.only('should work, with properly named inline constructor property declaration', () => {
+    it('should work, with properly named inline constructor property declaration', () => {
       const source = `
       class foo {
         constructor(bar) {}
