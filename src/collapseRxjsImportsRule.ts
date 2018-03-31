@@ -1,3 +1,6 @@
+// Original author Bowen Ni
+// Modifications mgechev.
+
 import * as Lint from 'tslint';
 import * as tsutils from 'tsutils';
 import * as ts from 'typescript';
