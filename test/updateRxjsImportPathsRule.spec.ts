@@ -1,4 +1,4 @@
-import { assertSuccess, assertAnnotated } from './testHelper';
+import { assertSuccess, assertAnnotated, assertMultipleAnnotated, assertFailures } from './testHelper';
 import { assert } from 'chai';
 import { RuleFailure } from 'tslint';
 
@@ -9,11 +9,9 @@ const assertReplacements = (err: RuleFailure[], before: string, after: string) =
       if (!Array.isArray(fixes)) {
         fixes = [fixes];
       }
-      const res = fixes.reduce((a, c) => {
-        return c.apply(a);
-      }, before);
-      assert(res === after);
+      before = fixes.reduce((a, c) => c.apply(a), before);
     });
+    assert(before === after, 'Replacements are not applied properly');
   }
 };
 
@@ -73,5 +71,149 @@ describe('update-rxjs-import-paths', () => {
     });
   });
 
-  describe('never & empty', () => {});
+  describe('never & empty', () => {
+    it('should migrate empty', () => {
+      const source = `
+        import { empty } from 'rxjs/observable/empty';
+      `;
+      const after = `
+        import { EMPTY } from 'rxjs';
+      `;
+
+      const err = assertFailures('update-rxjs-import-paths', source, [
+        {
+          startPosition: {
+            line: 1,
+            character: 17
+          },
+          endPosition: {
+            line: 1,
+            character: 22
+          },
+          message: 'The imported symbol no longer exists'
+        },
+        {
+          startPosition: {
+            line: 1,
+            character: 31
+          },
+          endPosition: {
+            line: 1,
+            character: 52
+          },
+          message: 'Outdated import path'
+        }
+      ]);
+
+      assertReplacements(err as RuleFailure[], source, after);
+    });
+
+    it('should migrate empty with aliases', () => {
+      const source = `
+        import { empty as Empty } from 'rxjs/observable/empty';
+      `;
+      const after = `
+        import { EMPTY as Empty } from 'rxjs';
+      `;
+
+      const err = assertFailures('update-rxjs-import-paths', source, [
+        {
+          startPosition: {
+            line: 1,
+            character: 17
+          },
+          endPosition: {
+            line: 1,
+            character: 22
+          },
+          message: 'The imported symbol no longer exists'
+        },
+        {
+          startPosition: {
+            line: 1,
+            character: 40
+          },
+          endPosition: {
+            line: 1,
+            character: 61
+          },
+          message: 'Outdated import path'
+        }
+      ]);
+
+      assertReplacements(err as RuleFailure[], source, after);
+    });
+
+    it('should migrate never', () => {
+      const source = `
+        import { never } from 'rxjs/observable/never';
+      `;
+      const after = `
+        import { NEVER } from 'rxjs';
+      `;
+
+      const err = assertFailures('update-rxjs-import-paths', source, [
+        {
+          startPosition: {
+            line: 1,
+            character: 17
+          },
+          endPosition: {
+            line: 1,
+            character: 22
+          },
+          message: 'The imported symbol no longer exists'
+        },
+        {
+          startPosition: {
+            line: 1,
+            character: 31
+          },
+          endPosition: {
+            line: 1,
+            character: 52
+          },
+          message: 'Outdated import path'
+        }
+      ]);
+
+      assertReplacements(err as RuleFailure[], source, after);
+    });
+
+    it('should migrate never with aliases', () => {
+      const source = `
+        import { never as Bar } from 'rxjs/observable/never';
+      `;
+      const after = `
+        import { NEVER as Bar } from 'rxjs';
+      `;
+
+      const err = assertFailures('update-rxjs-import-paths', source, [
+        {
+          startPosition: {
+            line: 1,
+            character: 17
+          },
+          endPosition: {
+            line: 1,
+            character: 22
+          },
+          message: 'The imported symbol no longer exists'
+        },
+        {
+          startPosition: {
+            line: 1,
+            character: 38
+          },
+          endPosition: {
+            line: 1,
+            character: 59
+          },
+          message: 'Outdated import path'
+        }
+      ]);
+
+      assertReplacements(err as RuleFailure[], source, after);
+    });
+  });
 });

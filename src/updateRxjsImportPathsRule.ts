@@ -129,9 +129,9 @@ class UpdateOutdatedImportsWalker extends Lint.RuleWalker {
     }
     return this.addFailureAt(
       toReplace.getStart(),
-      toReplace.getEnd(),
+      toReplace.getWidth(),
       'The imported symbol no longer exists',
-      this.createReplacement(toReplace.getStart(), toReplace.getEnd(), re.newSymbol)
+      this.createReplacement(toReplace.getStart(), toReplace.getWidth(), re.newSymbol)
     );
   }
 }
