@@ -225,7 +225,7 @@ function findImportedRxjsOperators(sourceFile: ts.SourceFile): Set<string> {
 }
 /**
  * Returns the index to be used for inserting import statements potentially
- * after a leading fileoverview comment (separated from the file with \n\n).
+ * after a leading file overview comment (separated from the file with \n\n).
  */
 function computeInsertionIndexForImports(sourceFile: ts.SourceFile): number {
   const comments = ts.getLeadingCommentRanges(sourceFile.getFullText(), 0) || [];

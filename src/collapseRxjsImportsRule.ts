@@ -11,7 +11,7 @@ const FAILURE_STRING = 'duplicate RxJS import';
  */
 export class Rule extends Lint.Rules.AbstractRule {
   static metadata: Lint.IRuleMetadata = {
-    ruleName: 'collpase-rxjs-imports',
+    ruleName: 'collapse-rxjs-imports',
     description:
       `In RxJS v6.0 most imports are just ` +
       `"import {...} from 'rxjs';". This TSLint rule collapses the ` +
@@ -67,7 +67,7 @@ function walk(ctx: Lint.WalkContext<void>) {
         importStatements: [statement]
       });
     } else {
-      // Collect all named imports and collpase them into one.
+      // Collect all named imports and collapse them into one.
       existingImport.namedImports += `, ${namedImports}`;
       existingImport.importStatements.push(statement);
     }
@@ -91,8 +91,8 @@ function walk(ctx: Lint.WalkContext<void>) {
       )
     ];
     for (const duplicateImport of imports.importStatements.slice(1)) {
-      // Only remove trailing comments for the removed import statments because
-      // those comments are mostly taze comments (which should not be needed in
+      // Only remove trailing comments for the removed import statements because
+      // those comments are mostly likely comments (which should not be needed in
       // the first place). Keep leading comments because that probably contains
       // something meaningful.
       let end = duplicateImport.end;
@@ -103,9 +103,7 @@ function walk(ctx: Lint.WalkContext<void>) {
         },
         ctx.sourceFile
       );
-      // Since we are removing an import statement, which is usually a line by
-      // itself, remove until end + 1 to avoid leaving an empty newline.
-      fixes.push(Lint.Replacement.deleteFromTo(duplicateImport.getFullStart(), end + 1));
+      fixes.push(Lint.Replacement.deleteFromTo(duplicateImport.getFullStart(), end));
     }
     ctx.addFailureAtNode(imports.importStatements[0], FAILURE_STRING, fixes);
   }
