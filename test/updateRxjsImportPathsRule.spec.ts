@@ -4,14 +4,18 @@ import { RuleFailure } from 'tslint';
 
 const assertReplacements = (err: RuleFailure[], before: string, after: string) => {
   if (err instanceof Array) {
+    let fixes = [];
     err.forEach(e => {
-      let fixes = e.getFix();
-      if (!Array.isArray(fixes)) {
-        fixes = [fixes];
+      let f = e.getFix();
+      if (!Array.isArray(f)) {
+        f = [f];
       }
-      before = fixes.reduce((a, c) => c.apply(a), before);
+      fixes = fixes.concat(f);
     });
-    assert(before === after, 'Replacements are not applied properly');
+    before = fixes
+      .sort((a, b) => (b.end !== a.end ? b.end - a.end : b.start - a.start))
+      .reduce((a, c) => c.apply(a), before);
+    assert(before === after, 'Replacements are not applied properly: ' + before);
   }
 };
 
@@ -77,7 +81,7 @@ describe('update-rxjs-import-paths', () => {
         import { empty } from 'rxjs/observable/empty';
       `;
       const after = `
-        import { EMPTY } from 'rxjs';
+        import { EMPTY as empty } from 'rxjs';
       `;
 
       const err = assertFailures('update-rxjs-import-paths', source, [
@@ -149,7 +153,7 @@ describe('update-rxjs-import-paths', () => {
         import { never } from 'rxjs/observable/never';
       `;
       const after = `
-        import { NEVER } from 'rxjs';
+        import { NEVER as never } from 'rxjs';
       `;
 
       const err = assertFailures('update-rxjs-import-paths', source, [
@@ -223,7 +227,7 @@ describe('update-rxjs-import-paths', () => {
         import { AnonymousSubscription } from 'rxjs/Subscription';
       `;
       const after = `
-        import { Unsubscribable } from 'rxjs';
+        import { Unsubscribable as AnonymousSubscription } from 'rxjs';
       `;
 
       const err = assertFailures('update-rxjs-import-paths', source, [
@@ -234,18 +238,65 @@ describe('update-rxjs-import-paths', () => {
           },
           endPosition: {
             line: 1,
-            character: 22
+            character: 38
           },
           message: 'The imported symbol no longer exists'
         },
         {
           startPosition: {
             line: 1,
-            character: 31
+            character: 47
           },
           endPosition: {
             line: 1,
-            character: 52
+            character: 64
+          },
+          message: 'Outdated import path'
+        }
+      ]);
+
+      assertReplacements(err as RuleFailure[], source, after);
+    });
+
+    it('should migrate AnonymousSubscription with ISubscription', () => {
+      const source = `
+        import { AnonymousSubscription, ISubscription } from 'rxjs/Subscription';
+      `;
+      const after = `
+        import { Unsubscribable as AnonymousSubscription, SubscriptionLike as ISubscription } from 'rxjs';
+      `;
+
+      const err = assertFailures('update-rxjs-import-paths', source, [
+        {
+          startPosition: {
+            line: 1,
+            character: 17
+          },
+          endPosition: {
+            line: 1,
+            character: 38
+          },
+          message: 'The imported symbol no longer exists'
+        },
+        {
+          startPosition: {
+            line: 1,
+            character: 40
+          },
+          endPosition: {
+            line: 1,
+            character: 53
+          },
+          message: 'The imported symbol no longer exists'
+        },
+        {
+          startPosition: {
+            line: 1,
+            character: 62
+          },
+          endPosition: {
+            line: 1,
+            character: 79
           },
           message: 'Outdated import path'
         }

@@ -36,6 +36,8 @@ const ImportMap = new Map([
   ['rxjs/observable/fromPromise', 'rxjs'],
   ['rxjs/observable/if', 'rxjs'],
   ['rxjs/observable/throw', 'rxjs'],
+  ['rxjs/observable/never', 'rxjs'],
+  ['rxjs/observable/empty', 'rxjs'],
   ['rxjs/observable/FromEventObservable', 'rxjs/internal/observable/fromEvent']
 ]);
 
@@ -67,6 +69,12 @@ const ImportReplacements = [
     symbol: 'AnonymousSubscription',
     newPath: 'rxjs',
     newSymbol: 'Unsubscribable'
+  },
+  {
+    path: 'rxjs/Subscription',
+    symbol: 'ISubscription',
+    newPath: 'rxjs',
+    newSymbol: 'SubscriptionLike'
   }
 ];
 
@@ -99,6 +107,9 @@ class UpdateOutdatedImportsWalker extends Lint.RuleWalker {
       const replacementEnd = specifier.text.length;
       let replacement = null;
 
+      // Try to find updated symbol names.
+      ImportReplacements.forEach(r => (r.path === path ? this._migrateExportedSymbols(r, node) : void 0));
+
       // Try to migrate entire import path updates.
       if (ImportMap.has(path)) {
         replacement = ImportMap.get(path);
@@ -107,17 +118,8 @@ class UpdateOutdatedImportsWalker extends Lint.RuleWalker {
         // of `rxjs/operators/*`.
       } else if (OperatorsPathRe.test(path)) {
         replacement = NewOperatorsPath;
-
-        // Try to migrate import path updates and renames of
-        // the exported symbols.
-      } else {
-        ImportReplacements.forEach(r => {
-          if (r.path === path) {
-            this._migrateEmptyOrNever(r, node);
-            replacement = r.newPath;
-          }
-        });
       }
+
       if (replacement !== null) {
         return this.addFailureAt(
           start,
@@ -129,28 +131,39 @@ class UpdateOutdatedImportsWalker extends Lint.RuleWalker {
     }
   }
 
-  private _migrateEmptyOrNever(re: ImportReplacement, node: ts.ImportDeclaration) {
+  private _migrateExportedSymbols(re: ImportReplacement, node: ts.ImportDeclaration) {
     const importClause = node.importClause as ts.ImportClause;
     const bindings = importClause.namedBindings as ts.NamedImports | null;
     if (!bindings || bindings.kind !== ts.SyntaxKind.NamedImports) {
       return;
     }
+
+    // Users may import more than a single symbol from `rxjs/Subscription`
+    // So we need to iterate over all the import specifiers and replace
+    // only the ones which were updated. All `rxjs/Subscription` exports
+    // are now under `rxjs` and there are two symbols renamed.
     bindings.elements.forEach((e: ts.ImportSpecifier | null) => {
       if (!e || e.kind !== ts.SyntaxKind.ImportSpecifier) {
         return;
       }
+
       let toReplace = e.name;
+      // We don't want to introduce type errors so we alias the old new symbol.
+      let replacement = `${re.newSymbol} as ${re.symbol}`;
       if (e.propertyName) {
         toReplace = e.propertyName;
+        replacement = re.newSymbol;
       }
+
       if (toReplace.getText() !== re.symbol) {
         return;
       }
+
       return this.addFailureAt(
         toReplace.getStart(),
         toReplace.getWidth(),
         'The imported symbol no longer exists',
-        this.createReplacement(toReplace.getStart(), toReplace.getWidth(), re.newSymbol)
+        this.createReplacement(toReplace.getStart(), toReplace.getWidth(), replacement)
       );
     });
   }
