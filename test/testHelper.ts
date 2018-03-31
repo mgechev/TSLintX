@@ -2,7 +2,7 @@ import * as tslint from 'tslint';
 import * as Lint from 'tslint';
 import chai = require('chai');
 import * as ts from 'typescript';
-import { IOptions } from 'tslint';
+import { IOptions, RuleFailure } from 'tslint';
 import { loadRules, convertRuleOptions } from './utils';
 
 const fs = require('fs');
@@ -287,3 +287,20 @@ export function assertSuccess(ruleName: string, source: string | ts.SourceFile, 
   const result = lint(ruleName, source, options);
   chai.assert.isTrue(result && result.failures.length === 0);
 }
+
+export const assertReplacements = (err: RuleFailure[], before: string, after: string) => {
+  if (err instanceof Array) {
+    let fixes = [];
+    err.forEach(e => {
+      let f = e.getFix();
+      if (!Array.isArray(f)) {
+        f = [f];
+      }
+      fixes = fixes.concat(f);
+    });
+    before = fixes
+      .sort((a, b) => (b.end !== a.end ? b.end - a.end : b.start - a.start))
+      .reduce((a, c) => c.apply(a), before);
+    chai.assert(before === after, 'Replacements are not applied properly: ' + before);
+  }
+};

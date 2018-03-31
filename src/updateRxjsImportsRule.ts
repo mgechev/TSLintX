@@ -80,7 +80,7 @@ const ImportReplacements = [
 
 export class Rule extends Lint.Rules.AbstractRule {
   public static metadata: Lint.IRuleMetadata = {
-    ruleName: 'update-rxjs-import-paths',
+    ruleName: 'update-rxjs-imports',
     type: 'functionality',
     description: 'Updates the paths of the rxjs imports to the version 6',
     rationale: 'RxJS version 6 updated their API which requires changes in some of the import paths.',
@@ -89,7 +89,7 @@ export class Rule extends Lint.Rules.AbstractRule {
     typescriptOnly: true
   };
 
-  static RuleFailure = 'Outdated import path';
+  static RuleFailure = 'outdated import path';
 
   public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
     return this.applyWithWalker(new UpdateOutdatedImportsWalker(sourceFile, this.getOptions()));
@@ -162,7 +162,7 @@ class UpdateOutdatedImportsWalker extends Lint.RuleWalker {
       return this.addFailureAt(
         toReplace.getStart(),
         toReplace.getWidth(),
-        'The imported symbol no longer exists',
+        'imported symbol no longer exists',
         this.createReplacement(toReplace.getStart(), toReplace.getWidth(), replacement)
       );
     });

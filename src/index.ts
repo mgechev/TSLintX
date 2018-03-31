@@ -1,2 +1,2 @@
-export { Rule as ExistingEnvironmentVars } from './existingEnvironmentVarsRule';
-export { Rule as UnderscorePrivates } from './underscorePrivatesRule';
+export { Rule as CollapseRxjsImports } from './collapseRxjsImportsRule';
+export { Rule as UpdateRxjsImports } from './updateRxjsImportsRule';

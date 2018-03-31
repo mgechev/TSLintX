@@ -1,34 +1,23 @@
-import { assertSuccess, assertAnnotated, assertMultipleAnnotated, assertFailures } from './testHelper';
+import {
+  assertSuccess,
+  assertAnnotated,
+  assertMultipleAnnotated,
+  assertFailures,
+  assertReplacements
+} from './testHelper';
 import { assert } from 'chai';
 import { RuleFailure } from 'tslint';
 
-const assertReplacements = (err: RuleFailure[], before: string, after: string) => {
-  if (err instanceof Array) {
-    let fixes = [];
-    err.forEach(e => {
-      let f = e.getFix();
-      if (!Array.isArray(f)) {
-        f = [f];
-      }
-      fixes = fixes.concat(f);
-    });
-    before = fixes
-      .sort((a, b) => (b.end !== a.end ? b.end - a.end : b.start - a.start))
-      .reduce((a, c) => c.apply(a), before);
-    assert(before === after, 'Replacements are not applied properly: ' + before);
-  }
-};
-
-describe('update-rxjs-import-paths', () => {
+describe('update-rxjs-imports', () => {
   describe('invalid import', () => {
-    it('should fail, when private property is not named properly', () => {
+    it('should update the old import', () => {
       const source = `
       import { foo } from 'rxjs/Subscriber';
                            ~~~~~~~~~~~~~~~
       `;
       const err = assertAnnotated({
-        ruleName: 'update-rxjs-import-paths',
-        message: 'Outdated import path',
+        ruleName: 'update-rxjs-imports',
+        message: 'outdated import path',
         source
       });
 
@@ -51,8 +40,8 @@ describe('update-rxjs-import-paths', () => {
       `;
 
       const err = assertAnnotated({
-        ruleName: 'update-rxjs-import-paths',
-        message: 'Outdated import path',
+        ruleName: 'update-rxjs-imports',
+        message: 'outdated import path',
         source
       });
 
@@ -71,7 +60,7 @@ describe('update-rxjs-import-paths', () => {
         import 'rxjs/operators/do';
       `;
 
-      assertSuccess('update-rxjs-import-paths', source);
+      assertSuccess('update-rxjs-imports', source);
     });
   });
 
@@ -84,7 +73,7 @@ describe('update-rxjs-import-paths', () => {
         import { EMPTY as empty } from 'rxjs';
       `;
 
-      const err = assertFailures('update-rxjs-import-paths', source, [
+      const err = assertFailures('update-rxjs-imports', source, [
         {
           startPosition: {
             line: 1,
@@ -94,7 +83,7 @@ describe('update-rxjs-import-paths', () => {
             line: 1,
             character: 22
           },
-          message: 'The imported symbol no longer exists'
+          message: 'imported symbol no longer exists'
         },
         {
           startPosition: {
@@ -105,7 +94,7 @@ describe('update-rxjs-import-paths', () => {
             line: 1,
             character: 52
           },
-          message: 'Outdated import path'
+          message: 'outdated import path'
         }
       ]);
 
@@ -120,7 +109,7 @@ describe('update-rxjs-import-paths', () => {
         import { EMPTY as Empty } from 'rxjs';
       `;
 
-      const err = assertFailures('update-rxjs-import-paths', source, [
+      const err = assertFailures('update-rxjs-imports', source, [
         {
           startPosition: {
             line: 1,
@@ -130,7 +119,7 @@ describe('update-rxjs-import-paths', () => {
             line: 1,
             character: 22
           },
-          message: 'The imported symbol no longer exists'
+          message: 'imported symbol no longer exists'
         },
         {
           startPosition: {
@@ -141,7 +130,7 @@ describe('update-rxjs-import-paths', () => {
             line: 1,
             character: 61
           },
-          message: 'Outdated import path'
+          message: 'outdated import path'
         }
       ]);
 
@@ -156,7 +145,7 @@ describe('update-rxjs-import-paths', () => {
         import { NEVER as never } from 'rxjs';
       `;
 
-      const err = assertFailures('update-rxjs-import-paths', source, [
+      const err = assertFailures('update-rxjs-imports', source, [
         {
           startPosition: {
             line: 1,
@@ -166,7 +155,7 @@ describe('update-rxjs-import-paths', () => {
             line: 1,
             character: 22
           },
-          message: 'The imported symbol no longer exists'
+          message: 'imported symbol no longer exists'
         },
         {
           startPosition: {
@@ -177,7 +166,7 @@ describe('update-rxjs-import-paths', () => {
             line: 1,
             character: 52
           },
-          message: 'Outdated import path'
+          message: 'outdated import path'
         }
       ]);
 
@@ -192,7 +181,7 @@ describe('update-rxjs-import-paths', () => {
         import { NEVER as Bar } from 'rxjs';
       `;
 
-      const err = assertFailures('update-rxjs-import-paths', source, [
+      const err = assertFailures('update-rxjs-imports', source, [
         {
           startPosition: {
             line: 1,
@@ -202,7 +191,7 @@ describe('update-rxjs-import-paths', () => {
             line: 1,
             character: 22
           },
-          message: 'The imported symbol no longer exists'
+          message: 'imported symbol no longer exists'
         },
         {
           startPosition: {
@@ -213,7 +202,7 @@ describe('update-rxjs-import-paths', () => {
             line: 1,
             character: 59
           },
-          message: 'Outdated import path'
+          message: 'outdated import path'
         }
       ]);
 
@@ -230,7 +219,7 @@ describe('update-rxjs-import-paths', () => {
         import { Unsubscribable as AnonymousSubscription } from 'rxjs';
       `;
 
-      const err = assertFailures('update-rxjs-import-paths', source, [
+      const err = assertFailures('update-rxjs-imports', source, [
         {
           startPosition: {
             line: 1,
@@ -240,7 +229,7 @@ describe('update-rxjs-import-paths', () => {
             line: 1,
             character: 38
           },
-          message: 'The imported symbol no longer exists'
+          message: 'imported symbol no longer exists'
         },
         {
           startPosition: {
@@ -251,7 +240,7 @@ describe('update-rxjs-import-paths', () => {
             line: 1,
             character: 64
           },
-          message: 'Outdated import path'
+          message: 'outdated import path'
         }
       ]);
 
@@ -266,7 +255,7 @@ describe('update-rxjs-import-paths', () => {
         import { Unsubscribable as AnonymousSubscription, SubscriptionLike as ISubscription } from 'rxjs';
       `;
 
-      const err = assertFailures('update-rxjs-import-paths', source, [
+      const err = assertFailures('update-rxjs-imports', source, [
         {
           startPosition: {
             line: 1,
@@ -276,7 +265,7 @@ describe('update-rxjs-import-paths', () => {
             line: 1,
             character: 38
           },
-          message: 'The imported symbol no longer exists'
+          message: 'imported symbol no longer exists'
         },
         {
           startPosition: {
@@ -287,7 +276,7 @@ describe('update-rxjs-import-paths', () => {
             line: 1,
             character: 53
           },
-          message: 'The imported symbol no longer exists'
+          message: 'imported symbol no longer exists'
         },
         {
           startPosition: {
@@ -298,7 +287,7 @@ describe('update-rxjs-import-paths', () => {
             line: 1,
             character: 79
           },
-          message: 'Outdated import path'
+          message: 'outdated import path'
         }
       ]);
 
