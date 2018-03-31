@@ -216,4 +216,42 @@ describe('update-rxjs-import-paths', () => {
       assertReplacements(err as RuleFailure[], source, after);
     });
   });
+
+  describe('AnonymousSubscription', () => {
+    it('should migrate AnonymousSubscription', () => {
+      const source = `
+        import { AnonymousSubscription } from 'rxjs/Subscription';
+      `;
+      const after = `
+        import { Unsubscribable } from 'rxjs';
+      `;
+
+      const err = assertFailures('update-rxjs-import-paths', source, [
+        {
+          startPosition: {
+            line: 1,
+            character: 17
+          },
+          endPosition: {
+            line: 1,
+            character: 22
+          },
+          message: 'The imported symbol no longer exists'
+        },
+        {
+          startPosition: {
+            line: 1,
+            character: 31
+          },
+          endPosition: {
+            line: 1,
+            character: 52
+          },
+          message: 'Outdated import path'
+        }
+      ]);
+
+      assertReplacements(err as RuleFailure[], source, after);
+    });
+  });
 });

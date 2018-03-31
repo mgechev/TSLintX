@@ -49,19 +49,26 @@ interface ImportReplacement {
   newSymbol: string;
 }
 
-const EmptyImport: ImportReplacement = {
-  path: 'rxjs/observable/empty',
-  symbol: 'empty',
-  newPath: 'rxjs',
-  newSymbol: 'EMPTY'
-};
-
-const NeverImport: ImportReplacement = {
-  path: 'rxjs/observable/never',
-  symbol: 'never',
-  newPath: 'rxjs',
-  newSymbol: 'NEVER'
-};
+const ImportReplacements = [
+  {
+    path: 'rxjs/observable/empty',
+    symbol: 'empty',
+    newPath: 'rxjs',
+    newSymbol: 'EMPTY'
+  },
+  {
+    path: 'rxjs/observable/never',
+    symbol: 'never',
+    newPath: 'rxjs',
+    newSymbol: 'NEVER'
+  },
+  {
+    path: 'rxjs/Subscription',
+    symbol: 'AnonymousSubscription',
+    newPath: 'rxjs',
+    newSymbol: 'Unsubscribable'
+  }
+];
 
 export class Rule extends Lint.Rules.AbstractRule {
   public static metadata: Lint.IRuleMetadata = {
@@ -91,16 +98,25 @@ class UpdateOutdatedImportsWalker extends Lint.RuleWalker {
       const replacementStart = start;
       const replacementEnd = specifier.text.length;
       let replacement = null;
+
+      // Try to migrate entire import path updates.
       if (ImportMap.has(path)) {
         replacement = ImportMap.get(path);
+
+        // Try to migrate import path prefix updates in case
+        // of `rxjs/operators/*`.
       } else if (OperatorsPathRe.test(path)) {
         replacement = NewOperatorsPath;
-      } else if (EmptyImport.path === path) {
-        this._migrateEmptyOrNever(EmptyImport, node);
-        replacement = EmptyImport.newPath;
-      } else if (NeverImport.path === path) {
-        this._migrateEmptyOrNever(NeverImport, node);
-        replacement = NeverImport.newPath;
+
+        // Try to migrate import path updates and renames of
+        // the exported symbols.
+      } else {
+        ImportReplacements.forEach(r => {
+          if (r.path === path) {
+            this._migrateEmptyOrNever(r, node);
+            replacement = r.newPath;
+          }
+        });
       }
       if (replacement !== null) {
         return this.addFailureAt(
@@ -119,19 +135,23 @@ class UpdateOutdatedImportsWalker extends Lint.RuleWalker {
     if (!bindings || bindings.kind !== ts.SyntaxKind.NamedImports) {
       return;
     }
-    const e = bindings.elements[0] as ts.ImportSpecifier | null;
-    if (!e || e.kind !== ts.SyntaxKind.ImportSpecifier) {
-      return;
-    }
-    let toReplace = e.name;
-    if (e.propertyName) {
-      toReplace = e.propertyName;
-    }
-    return this.addFailureAt(
-      toReplace.getStart(),
-      toReplace.getWidth(),
-      'The imported symbol no longer exists',
-      this.createReplacement(toReplace.getStart(), toReplace.getWidth(), re.newSymbol)
-    );
+    bindings.elements.forEach((e: ts.ImportSpecifier | null) => {
+      if (!e || e.kind !== ts.SyntaxKind.ImportSpecifier) {
+        return;
+      }
+      let toReplace = e.name;
+      if (e.propertyName) {
+        toReplace = e.propertyName;
+      }
+      if (toReplace.getText() !== re.symbol) {
+        return;
+      }
+      return this.addFailureAt(
+        toReplace.getStart(),
+        toReplace.getWidth(),
+        'The imported symbol no longer exists',
+        this.createReplacement(toReplace.getStart(), toReplace.getWidth(), re.newSymbol)
+      );
+    });
   }
 }
