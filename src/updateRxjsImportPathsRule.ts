@@ -1,7 +1,7 @@
 import * as Lint from 'tslint';
 import * as ts from 'typescript';
 
-const importMap = new Map([
+const ImportMap = new Map([
   ['rxjs/util/', 'rxjs/internal/util/'],
   ['rxjs/testing/', 'rxjs/internal/testing/'],
   ['rxjs/scheduler/', 'rxjs/internal/scheduler/'],
@@ -39,6 +39,30 @@ const importMap = new Map([
   ['rxjs/observable/FromEventObservable', 'rxjs/internal/observable/fromEvent']
 ]);
 
+const OperatorsPathRe = /^rxjs\/operators\/.*$/;
+const NewOperatorsPath = 'rxjs/operators';
+
+interface ImportReplacement {
+  path: string;
+  symbol: string;
+  newPath: string;
+  newSymbol: string;
+}
+
+const EmptyImport: ImportReplacement = {
+  path: 'rxjs/observable/empty',
+  symbol: 'empty',
+  newPath: 'rxjs',
+  newSymbol: 'EMPTY'
+};
+
+const NeverImport: ImportReplacement = {
+  path: 'rxjs/observable/never',
+  symbol: 'never',
+  newPath: 'rxjs',
+  newSymbol: 'NEVER'
+};
+
 export class Rule extends Lint.Rules.AbstractRule {
   public static metadata: Lint.IRuleMetadata = {
     ruleName: 'update-rxjs-import-paths',
@@ -59,17 +83,55 @@ export class Rule extends Lint.Rules.AbstractRule {
 
 class UpdateOutdatedImportsWalker extends Lint.RuleWalker {
   visitImportDeclaration(node: ts.ImportDeclaration): void {
-    if (ts.isStringLiteral(node.moduleSpecifier)) {
+    if (ts.isStringLiteral(node.moduleSpecifier) && node.importClause) {
       const specifier = node.moduleSpecifier;
       const path = (specifier as ts.StringLiteral).text;
-      if (importMap.has(path)) {
-        this.addFailureAt(
-          specifier.getStart() + 1,
-          specifier.text.length,
+      const start = specifier.getStart() + 1;
+      const end = specifier.text.length;
+      const replacementStart = start;
+      const replacementEnd = specifier.text.length;
+      let replacement = null;
+      if (ImportMap.has(path)) {
+        replacement = ImportMap.get(path);
+      } else if (OperatorsPathRe.test(path)) {
+        replacement = NewOperatorsPath;
+      } else if (EmptyImport.path === path) {
+        this._migrateEmptyOrNever(EmptyImport, node);
+        replacement = EmptyImport.newPath;
+      } else if (NeverImport.path === path) {
+        this._migrateEmptyOrNever(NeverImport, node);
+        replacement = NeverImport.newPath;
+      }
+      if (replacement !== null) {
+        return this.addFailureAt(
+          start,
+          end,
           Rule.RuleFailure,
-          this.createReplacement(specifier.getStart() + 1, specifier.text.length, importMap.get(path))
+          this.createReplacement(replacementStart, replacementEnd, replacement)
         );
       }
     }
+  }
+
+  private _migrateEmptyOrNever(re: ImportReplacement, node: ts.ImportDeclaration) {
+    const importClause = node.importClause as ts.ImportClause;
+    const bindings = importClause.namedBindings as ts.NamedImports | null;
+    if (!bindings || bindings.kind !== ts.SyntaxKind.NamedImports) {
+      return;
+    }
+    const e = bindings.elements[0] as ts.ImportSpecifier | null;
+    if (!e || e.kind !== ts.SyntaxKind.ImportSpecifier) {
+      return;
+    }
+    let toReplace = e.name;
+    if (e.propertyName) {
+      toReplace = e.propertyName;
+    }
+    return this.addFailureAt(
+      toReplace.getStart(),
+      toReplace.getEnd(),
+      'The imported symbol no longer exists',
+      this.createReplacement(toReplace.getStart(), toReplace.getEnd(), re.newSymbol)
+    );
   }
 }
